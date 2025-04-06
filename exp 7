@@ -1,0 +1,231 @@
+1. Build a program to perform CRUD operations (Create, Read, Update, Delete) on a database table Product with columns:
+ProductID, ProductName, Price, and Quantity.
+The program should include:
+Menu-driven options for each operation.
+Transaction handling to ensure data integrity.
+
+//Code:
+import sqlite3
+
+# Database connection
+def connect_db():
+    conn = sqlite3.connect('products.db')
+    return conn
+
+# Create table
+def create_table():
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Product (
+            ProductID INTEGER PRIMARY KEY AUTOINCREMENT,
+            ProductName TEXT NOT NULL,
+            Price REAL NOT NULL,
+            Quantity INTEGER NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Add product
+def create_product():
+    name = input("Enter product name: ")
+    price = float(input("Enter price: "))
+    quantity = int(input("Enter quantity: "))
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        conn.execute('BEGIN TRANSACTION;')
+        cursor.execute("INSERT INTO Product (ProductName, Price, Quantity) VALUES (?, ?, ?)",
+                       (name, price, quantity))
+        conn.commit()
+        print("Product added successfully!")
+    except Exception as e:
+        conn.rollback()
+        print(f"Error: {e}")
+    finally:
+        conn.close()
+
+# Read products
+def read_products():
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Product")
+    products = cursor.fetchall()
+    conn.close()
+
+    if products:
+        for product in products:
+            print(f"ID: {product[0]}, Name: {product[1]}, Price: {product[2]}, Quantity: {product[3]}")
+    else:
+        print("No products found.")
+
+# Update product
+def update_product():
+    product_id = int(input("Enter product ID to update: "))
+    name = input("Enter new product name: ")
+    price = float(input("Enter new price: "))
+    quantity = int(input("Enter new quantity: "))
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        conn.execute('BEGIN TRANSACTION;')
+        cursor.execute("UPDATE Product SET ProductName = ?, Price = ?, Quantity = ? WHERE ProductID = ?",
+                       (name, price, quantity, product_id))
+        conn.commit()
+        print("Product updated successfully!")
+    except Exception as e:
+        conn.rollback()
+        print(f"Error: {e}")
+    finally:
+        conn.close()
+
+# Delete product
+def delete_product():
+    product_id = int(input("Enter product ID to delete: "))
+
+    conn = connect_db()
+    cursor = conn.cursor()
+    try:
+        conn.execute('BEGIN TRANSACTION;')
+        cursor.execute("DELETE FROM Product WHERE ProductID = ?", (product_id,))
+        conn.commit()
+        print("Product deleted successfully!")
+    except Exception as e:
+        conn.rollback()
+        print(f"Error: {e}")
+    finally:
+        conn.close()
+
+# Main menu
+def main_menu():
+    create_table()
+    while True:
+        print("\n--- Product Management System ---")
+        print("1. Add Product")
+        print("2. View Products")
+        print("3. Update Product")
+        print("4. Delete Product")
+        print("5. Exit")
+
+        choice = input("Choose an option: ")
+
+        if choice == '1':
+            create_product()
+        elif choice == '2':
+            read_products()
+        elif choice == '3':
+            update_product()
+        elif choice == '4':
+            delete_product()
+        elif choice == '5':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid option, please try again.")
+
+if __name__ == "__main__":
+    main_menu()
+
+//Output:
+1. Add Student
+2. View Students
+3. Update Student
+4. Delete Student
+5. Exit
+Enter your choice: 2
+ID: 101, Name: Alice Johnson, Department: Computer Science, Marks: 87.5
+
+
+2. Develop a Java application using JDBC and MVC architecture to manage student data. The application should:
+Use a Student class as the model with fields like StudentID, Name, Department, and Marks.
+Include a database table to store student data.
+Allow the user to perform CRUD operations through a simple menu-driven view.
+Implement database operations in a separate controller class.
+
+//Code:
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentController {
+    private Connection connection;
+
+    public StudentController() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/school", "root", "password");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addStudent(Student student) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO Student (StudentID, Name, Department, Marks) VALUES (?, ?, ?, ?)");
+            ps.setInt(1, student.getStudentID());
+            ps.setString(2, student.getName());
+            ps.setString(3, student.getDepartment());
+            ps.setDouble(4, student.getMarks());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Student> viewStudents() {
+        List<Student> students = new ArrayList<>();
+        try {
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM Student");
+            while (rs.next()) {
+                students.add(new Student(rs.getInt("StudentID"), rs.getString("Name"),
+                                         rs.getString("Department"), rs.getDouble("Marks")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return students;
+    }
+
+    public void updateStudent(Student student) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("UPDATE Student SET Name = ?, Department = ?, Marks = ? WHERE StudentID = ?");
+            ps.setString(1, student.getName());
+            ps.setString(2, student.getDepartment());
+            ps.setDouble(3, student.getMarks());
+            ps.setInt(4, student.getStudentID());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteStudent(int studentID) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("DELETE FROM Student WHERE StudentID = ?");
+            ps.setInt(1, studentID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+//Output:
+--- Student Management System ---
+1. Add Student
+2. View Students
+3. Update Student
+4. Delete Student
+5. Exit
+Enter your choice: 1
+Enter Student ID: 101
+Enter Name: Alice Johnson
+Enter Department: Computer Science
+Enter Marks: 87.5
+Student added successfully!
+
+
